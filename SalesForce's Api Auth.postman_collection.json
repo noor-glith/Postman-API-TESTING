@@ -1,0 +1,170 @@
+{
+  "info": {
+    "_postman_id": "ba5e9c71-b052-4e7f-afe9-41bd807b47d7",
+    "name": "SalesForce's Api Auth",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "36645247",
+    "_collection_link": "https://go.postman.co/collection/36645247-ba5e9c71-b052-4e7f-afe9-41bd807b47d7?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Get Access Token - Client Credentials Flow",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"OAuth request succeeded\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\nconst response = pm.response.json();\r\n\r\npm.test(\"Access token was returned\", function () {\r\n    pm.expect(response.access_token).to.be.a(\"string\").and.not.empty;\r\n});\r\n\r\npm.test(\"Token type is Bearer\", function () {\r\n    pm.expect(response.token_type).to.eql(\"Bearer\");\r\n});\r\n\r\npm.environment.set(\"accessToken\", response.access_token);\r\n\r\nconsole.log(\"Salesforce access token saved to environment.\");"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "{{grantType}}"
+            },
+            {
+              "key": "client_id",
+              "value": "{{client_id}}"
+            },
+            {
+              "key": "client_secret",
+              "value": "{{client_secret}}"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/services/oauth2/token",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "services",
+            "oauth2",
+            "token"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Limits",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/services/data/{{apiVersion}}/limits",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "services",
+            "data",
+            "{{apiVersion}}",
+            "limits"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Account",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Account update succeeded\", function () {\r\n    pm.expect(pm.response.code).to.eql(204);\r\n});\r\n\r\npm.test(\"No response body returned\", function () {\r\n    pm.expect(pm.response.text()).to.eql(\"\");\r\n});\r\n"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const timestamp = Date.now();\r\n\r\nconst accountName = `Postman Test Account ${timestamp}`;\r\n\r\npm.environment.set(\"accountName\", accountName);\r\n\r\nconsole.log(\"Generated account name:\", accountName);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{accessToken}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n    \"Name\": \"{{accountName}}\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/services/data/{{apiVersion}}/sobjects/Account/{{updateAcId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "services",
+            "data",
+            "{{apiVersion}}",
+            "sobjects",
+            "Account",
+            "{{updateAcId}}"
+          ],
+          "query": [
+            {
+              "key": "",
+              "value": "",
+              "disabled": true
+            }
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "disabled": true,
+      "secret": true
+    }
+  ]
+}
